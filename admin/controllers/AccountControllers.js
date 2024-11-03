@@ -115,7 +115,9 @@ accountControllers.account_post_login = (req , res) => {
                       maxAge: 24 * 60 * 60 * 1000,
                       withCredentials: true,
                       // httpOnly: false,
-                        httpOnly: true
+                            httpOnly: true,              // Prevents client-side access for security
+                            secure: true,                // Ensures cookies are only sent over HTTPS
+                            sameSite: 'none'             
                     })
                     
                     const {_id, email, userName, avatar,phone, storeName} = user
