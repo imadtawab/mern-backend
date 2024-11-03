@@ -114,7 +114,8 @@ accountControllers.account_post_login = (req , res) => {
                     res.cookie("_auth", token, {
                       maxAge: 24 * 60 * 60 * 1000,
                       withCredentials: true,
-                      httpOnly: false,
+                      // httpOnly: false,
+                        httpOnly: true
                     })
                     
                     const {_id, email, userName, avatar,phone, storeName} = user
