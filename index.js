@@ -20,6 +20,15 @@ app.use(cors({
     methods: ["GET","POST","PUT","PATCH","DELETE"],
     credentials: true
 }))
+app.options('*', cors({
+    origin: [
+        // /^http:\/\/localhost:3000$/,
+        // /^http:\/\/[a-z0-9]+\.localhost:3000$/,
+        /^https:\/\/([a-z0-9-]+\.)?mern-frontend-swart\.vercel\.app$/
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true
+}));
 
 // cookiesParser
 const cookieParser = require("cookie-parser")
