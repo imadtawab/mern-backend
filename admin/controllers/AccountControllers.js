@@ -24,6 +24,7 @@ accountControllers.account_post_register = async (req, res) => {
           bcrypt
             .hash(req.body.password, +process.env.PASSWORD_KEY)
             .then((hashPass) => {
+                console.log(hashPass,1111111111111)
               new User({
                 ...req.body,
                 password: hashPass,
@@ -32,6 +33,7 @@ accountControllers.account_post_register = async (req, res) => {
               })
                 .save()
                 .then(async (docs) => {
+                    console.log(docs,2222222222222)
                   try {
                     await sendConfirmationEmail(req.body.email, activationCode);
                     return res.status(200).json({message: "Please check your email for confirmation", data:{email: req.body.email}});
@@ -41,6 +43,7 @@ accountControllers.account_post_register = async (req, res) => {
                 })
                 .catch((err) => rejectError(req, res, err, "This a pull sheet 2"));
             })
+              console.log("33333333333",333333333333333)
             .catch((err) => rejectError(req, res, err,  "This a pull sheet 3"));
         }else if (user && !user.isActive) {
           bcrypt
