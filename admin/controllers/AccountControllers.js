@@ -15,7 +15,7 @@ accountControllers.account_post_register = async (req, res) => {
       user && rejectError(req, res, null, "This store name is already exists.");
     }
     catch (err) {
-      return rejectError(req, res, err)
+      return rejectError(req, res, err, "This a pull sheet 1")
     }
     User.findOne({ email: req.body.email })
       .then(async (user) => {
@@ -39,9 +39,9 @@ accountControllers.account_post_register = async (req, res) => {
                     return rejectError(req, res, err, "Oops!, Please try again.", 500)
                   }
                 })
-                .catch((err) => rejectError(req, res, err));
+                .catch((err) => rejectError(req, res, err, "This a pull sheet 2"));
             })
-            .catch((err) => rejectError(req, res, err));
+            .catch((err) => rejectError(req, res, err,  "This a pull sheet 3"));
         }else if (user && !user.isActive) {
           bcrypt
           .hash(req.body.password, +process.env.PASSWORD_KEY)
