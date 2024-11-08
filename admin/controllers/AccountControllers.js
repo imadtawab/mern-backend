@@ -114,10 +114,7 @@ accountControllers.account_post_login = (req , res) => {
                     res.cookie("_auth", token, {
                       maxAge: 24 * 60 * 60 * 1000,
                       withCredentials: true,
-                      // httpOnly: false,
-                            httpOnly: true,              // Prevents client-side access for security
-                            secure: true,                // Ensures cookies are only sent over HTTPS
-                            sameSite: 'none'             
+                      httpOnly: false,
                     })
                     
                     const {_id, email, userName, avatar,phone, storeName} = user
