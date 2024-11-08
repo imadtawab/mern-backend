@@ -10,25 +10,17 @@ require('dotenv').config();
 
 // cors
 const cors = require('cors')
-app.use(cors({
+// Define CORS options
+const corsOptions = {
     origin: [
-        // /^http:\/\/localhost:3000/,
-        // /^http:\/\/[a-z0-9]+\.localhost:3000/,
-         /^https:\/\/([a-z0-9-]+\.)?mern-frontend-swart\.vercel\.app$/
-    ],
-    // origin: [process.env.CLIENT_DOMAINE],
-    methods: ["GET","POST","PUT","PATCH","DELETE"],
-    credentials: true
-}))
-app.options('*', cors({
-    origin: [
-        // /^http:\/\/localhost:3000$/,
-        // /^http:\/\/[a-z0-9]+\.localhost:3000$/,
-        /^https:\/\/([a-z0-9-]+\.)?mern-frontend-swart\.vercel\.app$/
+        /^https:\/\/([a-z0-9-]+\.)?mern-frontend-swart\.vercel\.app$/,
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true
-}));
+};
+
+// Apply CORS with the defined options
+app.use(cors(corsOptions));
 
 // cookiesParser
 const cookieParser = require("cookie-parser")
