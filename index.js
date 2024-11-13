@@ -66,3 +66,4 @@ app.all("*", (req,res)=>{
         message: "Page Not Found!!"
     })
 });
+module.exports = app;
