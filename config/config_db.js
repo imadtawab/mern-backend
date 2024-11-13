@@ -3,13 +3,12 @@ const rejectError = require('../mainUtils/rejectError');
 
 
 let connectToDB = (listen) => {
-    return mongoose.connect(process.env.DB, {
-  serverSelectionTimeoutMS: 5000, // 5 seconds
-  socketTimeoutMS: 45000, // 45 seconds
-}).then(() => {
+    return mongoose.connect(process.env.DB).then(() => {
         console.log("DATABASE connected ...");
         listen()
-    }).catch((err)=> rejectError(req , res , err))
+    }).catch((err)=> {
+        console.log(err, "error")
+    })
 }
 
 module.exports=connectToDB
