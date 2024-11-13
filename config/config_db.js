@@ -1,4 +1,5 @@
 const mongoose=require('mongoose');
+const rejectError = require('../mainUtils/rejectError');
 
 
 let connectToDB = (listen) => {
