@@ -11,10 +11,7 @@ require('dotenv').config();
 // cors
 const cors = require('cors')
 app.use(cors({
-    origin: [
-        /^http:\/\/localhost:3000/,
-        /^http:\/\/[a-z0-9]+\.localhost:3000/
-    ],
+    origin: "http://localhost:3000",
     // origin: [process.env.CLIENT_DOMAINE],
     methods: ["GET","POST","PUT","PATCH","DELETE"],
     credentials: true
