@@ -12,7 +12,8 @@ require('dotenv').config();
 const cors = require('cors')
 app.use(cors({
     origin: [
-        /^https:\/\/([a-z0-9-]+\.)?mern-frontend-ivory\.vercel\.app$/,
+        /^http:\/\/localhost:3000/,
+        /^http:\/\/[a-z0-9]+\.localhost:3000/
     ],
     // origin: [process.env.CLIENT_DOMAINE],
     methods: ["GET","POST","PUT","PATCH","DELETE"],
