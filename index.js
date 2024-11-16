@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname,"public")))
 // app.use(upload.none());
 
 // // Connect to mongodb
-// const connectToDB = require("./config/config_db")
+const connectToDB = require("./config/config_db")
 // connectToDB(() => app.listen(process.env.PORT,() => console.log("Server Started : http://localhost:"+process.env.PORT)))
 
 
