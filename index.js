@@ -32,9 +32,9 @@ app.use(express.static(path.join(__dirname,"public")))
 // Use multer for multipart/form-data
 // app.use(upload.none());
 
-// Connect to mongodb
-const connectToDB = require("./config/config_db")
-connectToDB(() => app.listen(process.env.PORT,() => console.log("Server Started : http://localhost:"+process.env.PORT)))
+// // Connect to mongodb
+// const connectToDB = require("./config/config_db")
+// connectToDB(() => app.listen(process.env.PORT,() => console.log("Server Started : http://localhost:"+process.env.PORT)))
 
 
 const authClient = (req, res, next) => {
@@ -64,4 +64,21 @@ app.all("*", (req,res)=>{
         message: "Page Not Found!!"
     })
 });
+
+// Start server after DB connection
+const startServer = async () => {
+    try {
+        await connectToDB();
+        app.listen(process.env.PORT, () => {
+            console.log("Server Started : http://localhost:" + process.env.PORT);
+        });
+    } catch (err) {
+        console.error("Failed to start server:", err);
+        process.exit(1); // Exit process on critical error
+    }
+};
+
+startServer();
+
+
 module.exports = app;
