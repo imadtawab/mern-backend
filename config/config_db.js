@@ -1,14 +1,13 @@
-const mongoose=require('mongoose');
-const rejectError = require('../mainUtils/rejectError');
+const mongoose = require('mongoose');
 
-
-let connectToDB = (listen) => {
-    return mongoose.connect(process.env.DB).then(() => {
+const connectToDB = async () => {
+    try {
+        await mongoose.connect(process.env.DB);
         console.log("DATABASE connected ...");
-        listen()
-    }).catch((err)=> {
-        console.log(err, "error")
-    })
-}
+    } catch (err) {
+        console.error("DATABASE connection error:", err.message);
+        throw err; // Let the caller handle errors
+    }
+};
 
-module.exports=connectToDB
+module.exports = connectToDB;
