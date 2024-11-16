@@ -9,21 +9,29 @@ const Joi = require("joi");
 let accountControllers = {}
 
 accountControllers.account_post_register = async (req, res) => {
+    console.log("before generate activation code")
     let activationCode = await generateToken(req.body.email);
+    console.log("after generate activation code: " , activationCode)
     try {
+        console.log("before find user")
       let user = await User.findOne({ storeName: req.checkStore})
+        console.log("after find user: ", user)
       user && rejectError(req, res, null, "This store name is already exists.");
     }
     catch (err) {
       return rejectError(req, res, err)
     }
+        console.log("before second find user")
     User.findOne({ email: req.body.email })
       .then(async (user) => {
+          console.log("after second find user:", user)
         // await User.deleteOne({email : req.body.email , isActive: false})
         if (!user) {
+            console.log("before hashed password")
           bcrypt
             .hash(req.body.password, +process.env.PASSWORD_KEY)
             .then((hashPass) => {
+            console.log("after hashed password: ", hashPass)
               new User({
                 ...req.body,
                 password: hashPass,
@@ -32,6 +40,7 @@ accountControllers.account_post_register = async (req, res) => {
               })
                 .save()
                 .then(async (docs) => {
+                    console.log("after create new user: ", docs)
                   try {
                     await sendConfirmationEmail(req.body.email, activationCode);
                     return res.status(200).json({message: "Please check your email for confirmation", data:{email: req.body.email}});
