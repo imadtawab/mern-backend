@@ -12,7 +12,9 @@ const accountModule = express.Router();
 
 // "/admin/account"
 
-accountModule.post("/register",checkStore, schemaValidationRegister, account_post_register);
+accountModule.post("/register",
+    // checkStore, 
+    schemaValidationRegister, account_post_register);
 accountModule.post("/register/confirm-email/:activationCode", account_post_activationCode)
 accountModule.post("/register/resend-email", account_post_resendEmail)
 

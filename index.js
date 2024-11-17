@@ -40,20 +40,30 @@ const connectToDB = require("./config/config_db")
 connectToDB(() => app.listen(process.env.PORT,() => console.log("Server Started : http://localhost:"+process.env.PORT)))
 
 
-const authClient = (req, res, next) => {
-    User.findOne({storeName: req.headers.subdomain}).then(user => {
-        if(user) {
-            req.userId = user._id
+const authClient = async (req, res, next) => {
+    let storeExists = await Store.findOne({name: req.headers.subdomain}).select(["userId","number_of_orders"])
+    if(storeExists) {
+            req.userId = storeExists.userId
+            req.currentOrderRef = storeExists.number_of_orders + 1
             return next()
-        }
-        return rejectError(req, res, null, "Sorry..., The store is not available")
-    }).catch(err => rejectError(req, res, err))
+    }
+    return rejectError(req, res, null, "Sorry..., The store is not available")
+    // User.find().populate("storeOwner", ["name","number_of_orders"]).then(user => {
+    //     console.log("user :::" ,user)
+    //     if(user) {
+    //         req.userId = user._id
+    //         req.currentOrderRef = user.storeOwner.number_of_orders + 1
+    //         return next()
+    //     }
+    //     return rejectError(req, res, null, "Sorry..., The store is not available")
+    // }).catch(err => rejectError(req, res, err))
 }
 // Routers
 const adminRouter = require("./routers/AdminRouter");
 const clientRouter = require("./routers/ClientRouter");
 const User = require("./models/UserSchema");
 const rejectError = require("./mainUtils/rejectError");
+const Store = require("./models/StoreSettingsSchema");
 app.use("/admin", adminRouter)
 app.use("/client", authClient, clientRouter)
 

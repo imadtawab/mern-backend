@@ -6,13 +6,18 @@ const Product = require('../../models/ProductSchema')
 const Category = require('../../models/CategorySchema')
 let orderControllers = {}
 
+
 orderControllers.order_get_orders = (req, res) => {
-  Order.updateMany({}, {userId: req.userId}).then(docs => console.log(docs, 88)).catch(err => console.log(err, 55))
-    let {page, step, search_product, search_customer, status, from, to} = req.query
+    let {page, step, search_product,search_ref, search_customer, status, from, to} = req.query
     
     let filters = {userId: req.userId}
     
     if(status) filters["current_status.name"] = status
+    if(search_ref) {
+      filters["ref"] = {
+          $regex: new RegExp(`.*${search_ref}.*`, 'i')
+      };
+  }
     if(search_customer) {
         filters["$or"] = [
             {firstName: {"$regex" : new RegExp(`.*${search_customer}.*`, 'i')}},
@@ -21,12 +26,13 @@ orderControllers.order_get_orders = (req, res) => {
         ]
     }
     if(search_product) {
-        filters["shoppingCart"] = {
-            $elemMatch: {
-                name: { $regex: new RegExp(`.*${search_product}.*`, 'i') }
-            }
-        };
-    }
+      filters["shoppingCart"] = {
+          $elemMatch: {
+              name: { $regex: new RegExp(`.*${search_product}.*`, 'i') }
+          }
+      };
+  }
+
     if(from || req.query.to) {
         filters.createdAt = {}
         if(from) filters.createdAt["$gte"] = new Date(from).getTime()
@@ -35,6 +41,7 @@ orderControllers.order_get_orders = (req, res) => {
 
 
     Order.find(filters).sort({ _id: -1 }).then(data => {
+        console.log(data.map(d => d._id).length)
         res.status(200).json({...paginationHandler(data, {page, step}), query: req.query})
     }).catch(err => rejectError(req, res, err))
 }

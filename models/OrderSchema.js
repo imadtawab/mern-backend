@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 
 const orderSchema = new mongoose.Schema({
+  ref: {
+    type: String,
+    required: true
+  },
   shoppingCart: [
     {
         // productOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'product' },

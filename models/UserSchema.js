@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  storeName: {
-    type: String,
-    required: true,
-  },
+  // storeName: {
+  //   type: String,
+  //   required: true,
+  // },
+  storeOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'storeSetting'},
   userName: {
     type: String,
     required: true,

@@ -5,6 +5,7 @@ const Visitor = require("../../models/VisitorSchema");
 const Shipping = require("../../models/ShippingSchema");
 const jwt = require("jsonwebtoken");
 const Coupon = require("../../models/CouponSchema");
+const Store = require("../../models/StoreSettingsSchema");
 
 
 let customerControllers = {}
@@ -125,20 +126,28 @@ customerControllers.customer_post_placeOrder = async (req, res) => {
             ) : (
                 shippingMethod.cost
             )
-          let body = {
-            userId: req.userId,
-            shoppingCart: shoppingCartHandle,
-            ...customer,
-            total_quantity,
-            shippingMethod,
-            shippingCost,
-            subtotal,
-            total_price: ((coupon?.discount ? coupon.type === "fixed" ? subtotal - coupon.discount : +subtotal*(1 - (+coupon.discount/100)) : subtotal) + +shippingCost).toFixed(2),
-        }
-        if(coupon?.discount) body.coupon = coupon
-        new Order(body).save().then(order => {
-            res.status(200).json({message: "Your order has been successfully."})
-        }).catch(err => rejectError(req, res, err))
+
+            Store.findOne({userId: req.userId}).select(["number_of_orders"]).then(store => {
+              store.number_of_orders++
+              let body = {
+                ref: `#${String(store.number_of_orders).padStart(4, '0')}`,
+                userId: req.userId,
+                shoppingCart: shoppingCartHandle,
+                ...customer,
+                total_quantity,
+                shippingMethod,
+                shippingCost,
+                subtotal,
+                total_price: ((coupon?.discount ? coupon.type === "fixed" ? subtotal - coupon.discount : +subtotal*(1 - (+coupon.discount/100)) : subtotal) + +shippingCost).toFixed(2),
+              }
+              if(coupon?.discount) body.coupon = coupon
+              new Order(body).save().then(order => {
+                store.save().then(_ => {
+                    res.status(200).json({data: order, message: "Your order has been successfully."})
+                }).catch(err => rejectError(req, res, err))
+              }).catch(err => rejectError(req, res, err))
+            }).catch(err => rejectError(req, res, err))
+
     })
 }
 customerControllers.customer_post_countVisitors = async (req, res) => {

@@ -1,77 +1,89 @@
 const User = require("../../models/UserSchema");
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const rejectError = require("../../mainUtils/rejectError")
 const jwt = require("jsonwebtoken")
-const { schemaValidationRegister, generateToken, sendConfirmationEmail, verifyToken, forgotPasswordEmail } = require("../utils/accountUtils");
+const { generateToken, sendConfirmationEmail, verifyToken, forgotPasswordEmail } = require("../utils/accountUtils");
 const { removeFile } = require("../utils/mediaUtils");
 const Joi = require("joi");
+const Store = require("../../models/StoreSettingsSchema");
+const { checkStore } = require("../utils/slugifyUtils");
+const Shipping = require("../../models/ShippingSchema");
 
 let accountControllers = {}
 
-accountControllers.account_post_register = async (req, res) => {
-    let activationCode = await generateToken(req.body.email);
+accountControllers.account_post_register = async (req, res, next) => {
+    let {userName, email, password, storeName} = req.body
     try {
-      let user = await User.findOne({ storeName: req.checkStore})
-      user && rejectError(req, res, null, "This store name is already exists.");
-    }
-    catch (err) {
+      // Check if a user with the given email already exists
+      const existingUser = await User.findOne({ email });
+
+      if (existingUser) {
+        // Check if the user is active
+        if (!existingUser.isActive) {
+          // Remove inactive user and associated store
+          await User.findByIdAndDelete(existingUser._id);
+          await Store.findOneAndDelete({ _id: existingUser.storeOwner });
+          await Shipping.deleteMany({ userId: existingUser._id });
+        } else {
+          return rejectError(req, res, null, "User is already registered.")
+        }
+      }
+
+      // Check Store Name
+      let storeAfterChecked = await checkStore(storeName)
+      // Create new Store
+      new Store({name: storeAfterChecked}).save().then(async newStore => {
+
+        let storeOwner = newStore._id
+        let hashPass = await bcrypt.hash(password, +process.env.PASSWORD_KEY)
+        let activationCode = await generateToken(req.body.email);
+
+        // Create New User
+        new User({
+          userName, email,
+          password: hashPass,
+          storeOwner,
+          activationCode,
+        }).save().then(user => {
+          // Inser User id in Store
+          newStore.userId = user._id
+          newStore.save().then(async _ => {
+            try {
+
+              // Create default shipping method
+              console.log(req.userId)
+              await new Shipping({
+                userId: user._id,
+                name: "free shipping",
+                type: "fixed",
+                rangeAmount: {
+                  min_amount: null,
+                  cost: null
+                },
+                cost: 0,
+                estimated_delivery: "5 - 10 day for delivery",
+                publish: true
+              }).save()
+
+              // Send confirmation email to user from email address
+              await sendConfirmationEmail(req.body.email, activationCode);
+              return res.status(200).json({message: "Please check your email for confirmation", data:{email: req.body.email}});
+              } catch (err) {
+              return rejectError(req, res, err, "Oops!, Please try again.", 500)
+            }
+            // return rejectError(req, res, null , "Oops! Something")
+          }).catch(err => rejectError(req, res, err))
+        }).catch(err => rejectError(req, res, err))
+
+      }).catch(err => rejectError(req, res, err))
+    } catch (err) {
       return rejectError(req, res, err)
     }
-    User.findOne({ email: req.body.email })
-      .then(async (user) => {
-        // await User.deleteOne({email : req.body.email , isActive: false})
-        if (!user) {
-          bcrypt
-            .hash(req.body.password, +process.env.PASSWORD_KEY)
-            .then((hashPass) => {
-              new User({
-                ...req.body,
-                password: hashPass,
-                storeName: req.checkStore,
-                activationCode,
-              })
-                .save()
-                .then(async (docs) => {
-                  try {
-                    await sendConfirmationEmail(req.body.email, activationCode);
-                    return res.status(200).json({message: "Please check your email for confirmation", data:{email: req.body.email}});
-                    } catch (err) {
-                    return rejectError(req, res, err, "Oops!, Please try again.", 500)
-                  }
-                })
-                .catch((err) => rejectError(req, res, err));
-            })
-            .catch((err) => rejectError(req, res, err));
-        }else if (user && !user.isActive) {
-          bcrypt
-          .hash(req.body.password, +process.env.PASSWORD_KEY)
-          .then((hashPass) => {
-            user.userName = req.body.userName
-            user.email = req.body.email
-            user.password = hashPass
-            user.activationCode = activationCode
-            user
-              .save()
-              .then(async (docs) => {
-                try {
-                  await sendConfirmationEmail(req.body.email, activationCode);
-                  return res.status(200).json({message: "Please check your email for confirmation", data:{email: req.body.email}});
-                  } catch (err) {
-                  return rejectError(req, res, err, "Oops!, Please try again.", 500)
-                }
-              })
-              .catch((err) => rejectError(req, res, err));
-          })
-          .catch((err) => rejectError(req, res, err));
-        }else{
-          return rejectError(req, res, null, "This email is already used.", 409)
-        }
-      })
-      .catch((err) => rejectError(req, res, err));
 }
 accountControllers.account_post_activationCode = async (req, res) => {
     let tokenResult = await verifyToken(req.params.activationCode)
-    User.findOne({activationCode : req.params.activationCode, isActive: false}).then((user) => {
+    User.findOne({activationCode : req.params.activationCode, isActive: null}).then((user) => {
+      console.log(user,2)
       if(user && tokenResult?.email === user.email) {
           user.isActive = true
           user.activationCode = null
@@ -85,7 +97,7 @@ accountControllers.account_post_activationCode = async (req, res) => {
 }
 accountControllers.account_post_resendEmail = async (req, res) => {
     let activationCode = await generateToken(req.body.email)
-    User.findOne({email : req.body.email, isActive: false}).then((user) => {
+    User.findOne({email : req.body.email, isActive: null}).then((user) => {
       if(user){
           user.activationCode = activationCode
           user.save().then(async (docs) => {
@@ -102,7 +114,7 @@ accountControllers.account_post_resendEmail = async (req, res) => {
   }).catch(err => rejectError(req , res , err))
 }
 accountControllers.account_post_login = (req , res) => {
-    User.findOne({email : req.body.email , isActive: true}).then((user) => {
+    User.findOne({email : req.body.email , isActive: true}).populate("storeOwner", ["name"]).then((user) => {
         if(user){
             bcrypt.compare(req.body.password , user.password ).then(async (pass) =>{
                 if(pass){
@@ -117,8 +129,8 @@ accountControllers.account_post_login = (req , res) => {
                       httpOnly: false,
                     })
                     
-                    const {_id, email, userName, avatar,phone, storeName} = user
-                    return res.status(200).json({user: {_id, email, userName, avatar,phone, storeName}, token})
+                    const {_id, email, userName, avatar,phone, storeOwner} = user
+                    return res.status(200).json({user: {_id, email, userName, avatar,phone, storeOwner}, token})
                 }else{
                     return rejectError(req , res , null , "Email or password is invalid", 401)
                 }
@@ -166,7 +178,8 @@ accountControllers.account_post_forgotPasswordCode = async (req, res) => {
 }
 accountControllers.account_get_addAuthToState = async (req , res) => {
   const {_id} = await jwt.verify(req.cookies?._auth,process.env.JWT_SECRET)
-  User.findById(_id,{userName: true, email: true, storeName: true, avatar: true, phone: true}).then((user) => {
+  User.findById(_id,{userName: true, email: true, avatar: true, phone: true}).populate("storeOwner", ["name"]).then((user) => {
+      console.log(user)
       if(user){
           return res.status(200).json({user , token: req.cookies?._auth})
       }else{

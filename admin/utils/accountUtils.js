@@ -44,6 +44,7 @@ accountUtils.validationPassword = (req, res, next) => {
 }
 // send Email for confimation
 accountUtils.sendConfirmationEmail = (email, activationCode) => {
+  console.log(`${process.env.CLIENT_DOMAINE}/admin/account/register/confirm_email/${activationCode}"`);
     transport.sendMail({
         from: "testrimad@gmail.com",
         to: email,

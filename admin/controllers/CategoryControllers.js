@@ -22,7 +22,7 @@ categoryControllers.category_get_categories = (req, res) => {
     }).catch(err => rejectError(req, res, err, null, 400))
 }
 categoryControllers.category_get_categoriesForProduct = (req, res) => {
-    Category.find().then(data => {
+    Category.find({userOwner: req.userId}).then(data => {
         res.status(200).json({data});
     }).catch(err => rejectError(req, res, err, null, 400))
 }

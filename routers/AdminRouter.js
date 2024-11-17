@@ -9,6 +9,7 @@ const productModule = require("../admin/modules/ProductModule")
 const orderModule = require("../admin/modules/OrderModule")
 const shippingModule = require("../admin/modules/shippingModule")
 const couponModule = require("../admin/modules/CouponModule")
+const storeSettingsModule = require("../admin/modules/storeSettingsModule")
 
 
 
@@ -20,6 +21,7 @@ adminRouter.use("/categories", auth, categoryModule)
 adminRouter.use("/products", auth, productModule)
 adminRouter.use("/orders", auth, orderModule)
 adminRouter.use("/shipping-methods", auth, shippingModule)
+adminRouter.use("/store-settings", auth, storeSettingsModule)
 
 
 module.exports = adminRouter

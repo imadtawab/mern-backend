@@ -12,6 +12,7 @@ const productSchema = new mongoose.Schema({
   // variantsOwner: [{ type: mongoose.Schema.Types.ObjectId, ref: 'variant', default: [] }],
   variantsOwner: Array,
   userOwner: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+  reviewsOwner: [{ type: mongoose.Schema.Types.ObjectId, ref: 'review', default: [] }],
   name: {
     type: String,
     required: true,
