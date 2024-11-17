@@ -27,7 +27,7 @@ accountControllers.account_post_register = async (req, res) => {
           console.log("after second find user:", user)
         // await User.deleteOne({email : req.body.email , isActive: false})
         if (!user) {
-            console.log("before hashed password")
+            console.log("before hashed password :",req.body.password,"----", +process.env.PASSWORD_KEY)
           bcrypt
             .hash(req.body.password, +process.env.PASSWORD_KEY)
             .then((hashPass) => {
