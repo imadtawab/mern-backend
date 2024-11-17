@@ -1,6 +1,6 @@
 const User = require("../../models/UserSchema");
-const bcrypt = require('bcrypt');
 const rejectError = require("../../mainUtils/rejectError")
+const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken")
 const { generateToken, sendConfirmationEmail, verifyToken, forgotPasswordEmail } = require("../utils/accountUtils");
 const { removeFile } = require("../utils/mediaUtils");
