@@ -60,7 +60,6 @@ accountControllers.account_post_register = async (req, res, next) => {
           newStore.save().then(async _ => {
             console.log("after update store : " , _)
             try {
-
               // Create default shipping method
               console.log(req.userId)
               await new Shipping({
