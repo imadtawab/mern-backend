@@ -12,14 +12,84 @@ const Shipping = require("../../models/ShippingSchema");
 let accountControllers = {}
 
 accountControllers.account_post_register = async (req, res, next) => {
+    let {userName, email, password, storeName} = req.body
+    try {
+      console.log("before find user")
+      // Check if a user with the given email already exists
+      const existingUser = await User.findOne({ email });
+      console.log("after find user : ", existingUser)
+      
+      if (existingUser) {
+        // Check if the user is active
+        if (!existingUser.isActive) {
+          // Remove inactive user and associated store
+          await User.findByIdAndDelete(existingUser._id);
+          await Store.findOneAndDelete({ _id: existingUser.storeOwner });
+          await Shipping.deleteMany({ userId: existingUser._id });
+        } else {
+          return rejectError(req, res, null, "User is already registered.")
+        }
+      }
+      
+      console.log("before checkStore")
+      // Check Store Name
+      let storeAfterChecked = await checkStore(storeName)
+      console.log("after checkStore: ", storeAfterChecked)
+      // Create new Store
+      console.log("before new store")
+      new Store({name: storeAfterChecked}).save().then(async newStore => {
+        console.log("after new store : ", newStore)
+        
+        let storeOwner = newStore._id
+        console.log("before hashPass")
+        let hashPass = await bcrypt.hash(password, +process.env.PASSWORD_KEY)
+        console.log("after hashPass : ", hashPass)
+        let activationCode = await generateToken(req.body.email);
+        console.log("after activationCode : " , activationCode)
+        
+        // Create New User
         new User({
-          userName: "imaaaad", email:"imaaaad@gmail.com",
-          password: "hashPass",
-          storeOwner: "66997e7ba9ae9ff14647da1b",
-          activationCode: "zdkfkelflorkfkfgkdekree",
+          userName, email,
+          password: hashPass,
+          storeOwner,
+          activationCode,
         }).save().then(user => {
-          return res.status(200).json({message: "Please check your email for confirmation", data:{email: "imaaaaad@gmail.com"}});
+          console.log("after new user : " , user)
+          // Inser User id in Store
+          newStore.userId = user._id
+          newStore.save().then(async _ => {
+            console.log("after update store : " , _)
+            try {
+
+              // Create default shipping method
+              console.log(req.userId)
+              await new Shipping({
+                userId: user._id,
+                name: "free shipping",
+                type: "fixed",
+                rangeAmount: {
+                  min_amount: null,
+                  cost: null
+                },
+                cost: 0,
+                estimated_delivery: "5 - 10 day for delivery",
+                publish: true
+              }).save()
+
+              // Send confirmation email to user from email address
+              await sendConfirmationEmail(req.body.email, activationCode);
+              return res.status(200).json({message: "Please check your email for confirmation", data:{email: req.body.email}});
+              } catch (err) {
+              return rejectError(req, res, err, "Oops!, Please try again.", 500)
+            }
+            // return rejectError(req, res, null , "Oops! Something")
+          }).catch(err => rejectError(req, res, err))
         }).catch(err => rejectError(req, res, err))
+
+      }).catch(err => rejectError(req, res, err))
+    } catch (err) {
+      return rejectError(req, res, err)
+    }
 }
 accountControllers.account_post_activationCode = async (req, res) => {
     let tokenResult = await verifyToken(req.params.activationCode)
