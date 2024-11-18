@@ -14,10 +14,8 @@ let accountControllers = {}
 accountControllers.account_post_register = async (req, res, next) => {
     let {userName, email, password, storeName} = req.body
     try {
-      console.log("before find user")
       // Check if a user with the given email already exists
       const existingUser = await User.findOne({ email });
-      console.log("after find user : ", existingUser)
       
       if (existingUser) {
         // Check if the user is active
@@ -31,21 +29,14 @@ accountControllers.account_post_register = async (req, res, next) => {
         }
       }
       
-      console.log("before checkStore")
       // Check Store Name
       let storeAfterChecked = await checkStore(storeName)
-      console.log("after checkStore: ", storeAfterChecked)
       // Create new Store
-      console.log("before new store")
       new Store({name: storeAfterChecked}).save().then(async newStore => {
-        console.log("after new store : ", newStore)
         
         let storeOwner = newStore._id
-        console.log("before hashPass",password,+process.env.PASSWORD_KEY)
        let hashPass = await bcrypt.hashSync(password, +process.env.PASSWORD_KEY)        
-        console.log("after hashPass : ", hashPass)
         let activationCode = await generateToken(req.body.email);
-        console.log("after activationCode : " , activationCode)
         
         // Create New User
         new User({
@@ -54,14 +45,11 @@ accountControllers.account_post_register = async (req, res, next) => {
           storeOwner,
           activationCode,
         }).save().then(user => {
-          console.log("after new user : " , user)
           // Inser User id in Store
           newStore.userId = user._id
           newStore.save().then(async _ => {
-            console.log("after update store : " , _)
             try {
               // Create default shipping method
-              console.log(req.userId)
               await new Shipping({
                 userId: user._id,
                 name: "free shipping",
@@ -93,7 +81,6 @@ accountControllers.account_post_register = async (req, res, next) => {
 accountControllers.account_post_activationCode = async (req, res) => {
     let tokenResult = await verifyToken(req.params.activationCode)
     User.findOne({activationCode : req.params.activationCode, isActive: null}).then((user) => {
-      console.log(user,2)
       if(user && tokenResult?.email === user.email) {
           user.isActive = true
           user.activationCode = null
@@ -189,7 +176,6 @@ accountControllers.account_post_forgotPasswordCode = async (req, res) => {
 accountControllers.account_get_addAuthToState = async (req , res) => {
   const {_id} = await jwt.verify(req.cookies?._auth,process.env.JWT_SECRET)
   User.findById(_id,{userName: true, email: true, avatar: true, phone: true}).populate("storeOwner", ["name"]).then((user) => {
-      console.log(user)
       if(user){
           return res.status(200).json({user , token: req.cookies?._auth})
       }else{
@@ -229,7 +215,7 @@ accountControllers.account_put_updateProfile = async (req , res) => {
           return rejectError(req , res , null , "PLease Change Informations")
       }
       res.json({message: "The profile has been updated", data: {...req.body , emptyAvatar: req.body?.emptyAvatar  , avatar: req.body?.emptyAvatar ? undefined : req.file?.filename}})
-  }).catch(err => console.log(err))
+  }).catch(err => rejectError(req , res , err))
 }
 accountControllers.account_patch_changePassword = (req, res) => {
   let { current_password, password } = req.body
