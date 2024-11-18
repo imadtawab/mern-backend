@@ -42,7 +42,8 @@ accountControllers.account_post_register = async (req, res, next) => {
         
         let storeOwner = newStore._id
         console.log("before hashPass")
-        let hashPass = await bcrypt.hashSync(password, +process.env.PASSWORD_KEY)
+                let hashPass = await bcrypt.hash(password, +process.env.PASSWORD_KEY).then(h => console.log("aaa", h)).catch(e => console.log("eeee",e))
+
         console.log("after hashPass : ", hashPass)
         let activationCode = await generateToken(req.body.email);
         console.log("after activationCode : " , activationCode)
