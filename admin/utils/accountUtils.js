@@ -43,9 +43,9 @@ accountUtils.validationPassword = (req, res, next) => {
     }).validateAsync(req.body).then(() => next()).catch(err => rejectError(req, res, err.details[0].message))
 }
 // send Email for confimation
-accountUtils.sendConfirmationEmail = (email, activationCode) => {
+accountUtils.sendConfirmationEmail = async (email, activationCode) => {
   console.log(`${process.env.CLIENT_DOMAINE}/admin/account/register/confirm_email/${activationCode}"`);
-    transport.sendMail({
+    await transport.sendMail({
         from: "testrimad@gmail.com",
         to: email,
         subject: "Confirm your acount",
@@ -55,7 +55,10 @@ accountUtils.sendConfirmationEmail = (email, activationCode) => {
                     <p>For active your acount , Please click in the link</p>
                     <a href="${process.env.CLIENT_DOMAINE}/admin/account/register/confirm_email/${activationCode}"> Click here !</a>
                 </div>`
-        }).then(docs => docs).catch(err => err)
+        }).then(docs => {
+          console.log("email sended ...", docs)
+          return docs
+        }).catch(err => err)
 }
 accountUtils.forgotPasswordEmail = (email, forgotPasswordCode) => {
   transport.sendMail({
