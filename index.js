@@ -30,7 +30,7 @@ app.use(express.json());
 
 // static folder
 const path = require("path")
-app.use(express.static(path.join(__dirname,"./public")))
+app.use(express.static(path.join(__dirname,"public")))
 
 // Use multer for multipart/form-data
 // app.use(upload.none());
