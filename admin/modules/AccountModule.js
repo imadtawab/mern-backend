@@ -21,7 +21,7 @@ accountModule.post("/register/resend-email", account_post_resendEmail)
 accountModule.post("/login" , account_post_login)
 accountModule.post("/login/forgot-password", account_post_forgotPassword)
 accountModule.post("/login/forgot-password/:forgotPasswordCode", validationPassword, account_post_forgotPasswordCode)
-accountModule.get("/auth/addAuthToState",checkAuthorization, account_get_addAuthToState)
+accountModule.get("/auth/addAuthToState",auth, account_get_addAuthToState)
 
 accountModule.post("/settings/update-profile", auth, storage.single("avatar"), account_put_updateProfile)
 accountModule.put("/settings/change-password", auth, validationPassword, account_patch_changePassword)
