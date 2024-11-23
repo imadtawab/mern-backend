@@ -174,10 +174,12 @@ accountControllers.account_post_forgotPasswordCode = async (req, res) => {
   }).catch(err => rejectError(req, res, err))
 }
 accountControllers.account_get_addAuthToState = async (req , res) => {
-  const {_id} = await jwt.verify(req.cookies?._auth,process.env.JWT_SECRET)
-  User.findById(_id,{userName: true, email: true, avatar: true, phone: true}).populate("storeOwner", ["name"]).then((user) => {
+  // const {_id} = await jwt.verify(req.cookies?._auth,process.env.JWT_SECRET)
+  if(!req.userId) return rejectError(req , res , null , "PLease Login In Your Account")
+  User.findById(req.userId,{userName: true, email: true, avatar: true, phone: true}).populate("storeOwner", ["name"]).then((user) => {
+      console.log(user)
       if(user){
-          return res.status(200).json({user , token: req.cookies?._auth})
+          return res.status(200).json({user})
       }else{
           rejectError(req , res , null , "PLease Login In Your Account")
       }
