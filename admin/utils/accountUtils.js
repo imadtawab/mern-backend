@@ -113,11 +113,12 @@ accountUtils.verifyToken = (token) => {
 };
 accountUtils.checkAuthorization = async (req, res, next) => {
   try {
+    console.log("______auth",req.cookies?._auth)
     await jwt.verify(req.cookies?._auth,process.env.JWT_SECRET)
 } catch (error) {
+  console.log("______auth error ::",error)
     return rejectError(req , res , error , "Authorization is not valid")
 }
 next()
 }
-
 module.exports = accountUtils
