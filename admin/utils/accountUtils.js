@@ -112,7 +112,7 @@ accountUtils.verifyToken = (token) => {
   }
 };
 accountUtils.checkAuthorization = async (req, res, next) => {
-  console.log("req",req)
+  console.log("req",req.cookies, req.cookie, req.headers)
   try {
     console.log("______auth",req.cookies?._auth)
     await jwt.verify(req.cookies?._auth,process.env.JWT_SECRET)
