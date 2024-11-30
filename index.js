@@ -41,7 +41,7 @@ connectToDB(() => app.listen(process.env.PORT,() => console.log("Server Started 
 
 
 const authClient = async (req, res, next) => {
-    let storeExists = await Store.findById("6731fb4c0b1be536211cfc7c").select(["userId","number_of_orders"])
+    let storeExists = await Store.findById("670c2eeb36819f908ef656a7").select(["userId","number_of_orders"])
     if(storeExists) {
             req.userId = storeExists.userId
             req.currentOrderRef = storeExists.number_of_orders + 1
