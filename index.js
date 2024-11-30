@@ -13,7 +13,7 @@ const cors = require('cors')
 app.use(cors({
     origin: [
         /^https:\/\/mern-frontend-ivory\.vercel\.app/,
-        /^https:\/\/[a-z0-9]+\.(mern-frontend-ivory)\.vercel\.app/
+        // /^https:\/\/[a-z0-9]+\.(mern-frontend-ivory)\.vercel\.app/
     ],
     // origin: [process.env.CLIENT_DOMAINE],
     methods: ["GET","POST","PUT","PATCH","DELETE"],
@@ -41,7 +41,7 @@ connectToDB(() => app.listen(process.env.PORT,() => console.log("Server Started 
 
 
 const authClient = async (req, res, next) => {
-    let storeExists = await Store.findOne({name: req.headers.subdomain}).select(["userId","number_of_orders"])
+    let storeExists = await Store.findById("6731fb4c0b1be536211cfc7c").select(["userId","number_of_orders"])
     if(storeExists) {
             req.userId = storeExists.userId
             req.currentOrderRef = storeExists.number_of_orders + 1
