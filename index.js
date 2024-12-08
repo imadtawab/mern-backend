@@ -12,7 +12,7 @@ require('dotenv').config();
 const cors = require('cors')
 app.use(cors({
     origin: [
-        /^https:\/\/mern-frontend-ivory\.vercel\.app/,
+        "https://mern-frontend-two-rosy.vercel.app",
         "http://localhost:3000"
         // /^https:\/\/[a-z0-9]+\.(mern-frontend-ivory)\.vercel\.app/
     ],
